@@ -1,4 +1,4 @@
-package io.tech.model;
+package io.tech.test.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

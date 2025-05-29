@@ -1,7 +1,8 @@
-package io.tech.controller;
+package io.tech.test.controller;
 
-import io.tech.model.IndexModel;
-import io.tech.repo.IndexRepo;
+import io.tech.test.model.IndexModel;
+import io.tech.test.repo.IndexRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,13 +11,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/index")
 public class Index {
-
     @Autowired
     private IndexRepo indexRepo;
+
     @GetMapping("/print")
     public String print() {
         return "Hello from the print method!";
     }
+
     @PostMapping("/create")
     public IndexModel create(@RequestBody IndexModel model) {
         return indexRepo.save(model);
@@ -27,6 +29,3 @@ public class Index {
         return indexRepo.findAll();
     }
 }
-
-   
-

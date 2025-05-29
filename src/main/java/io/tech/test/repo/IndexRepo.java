@@ -1,7 +1,8 @@
-package io.tech.repo;
+package io.tech.test.repo;
 
-import io.tech.model.IndexModel;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
+import io.tech.test.model.IndexModel;
 
 public interface IndexRepo extends MongoRepository<IndexModel, String> {
 }
