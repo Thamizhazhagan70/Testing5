@@ -16,9 +16,21 @@ public class Index {
 
     @GetMapping("/print")
     public String print() {
+
     	//tttttttttttr
     	//hello
+
+
+    	//tttttttttttr
+    	//hello
+    	//haiiiii	//tttttttttttr
+    	//hello
+    	//haiiiii
+    	//tttttttttttr
+    	//hello
+
         return "Hello from the print method!";
+//        return "Hello from the print metggggggghod!";
     }
 
     @PostMapping("/create")
