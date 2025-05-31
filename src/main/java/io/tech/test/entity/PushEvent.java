@@ -20,7 +20,7 @@ public class PushEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String branch;
     private String beforeCommit;
