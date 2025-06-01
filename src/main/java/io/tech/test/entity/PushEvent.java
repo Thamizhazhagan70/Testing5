@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,7 +21,7 @@ import javax.persistence.GenerationType;
 public class PushEvent {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
     private String branch;
@@ -52,8 +54,7 @@ public class PushEvent {
 
     private String headCommitId;
 
-    @Column(columnDefinition = "TEXT")
-    private String headCommitMessage;
+    private List<String> headCommitMessages;
 
     private LocalDateTime headCommitTimestamp;
 }
