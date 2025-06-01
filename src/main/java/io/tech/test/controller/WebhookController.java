@@ -21,7 +21,6 @@ public class WebhookController {
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
 		log.info("✅ Push event received>>>>"+payload);
-		log.info("✅ Push !!!");
 
 		// Print specific details
 		System.out.println("Ref: " + payload.get("ref"));
