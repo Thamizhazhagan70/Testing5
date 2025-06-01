@@ -56,6 +56,7 @@ public class PushEventService {
 							existingPushEvent.setHeadCommitTimestamp(LocalDateTime.now());
 						}
 					}
+					existingPushEvent.setCompareUrl((String) payload.get("compare"));
 
 					pushEventRepository.save(existingPushEvent);
 					log.info("Updated commit count to {}, and appended message for branch '{}'",
