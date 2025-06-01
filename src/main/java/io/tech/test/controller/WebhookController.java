@@ -20,13 +20,11 @@ public class WebhookController {
 	@PostMapping("/receive")
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
-		log.info("✅ Push event received>>>>"+payload);
-
-		// Print specific details
 		System.out.println("Ref: " + payload.get("ref"));
 		pushEventService.processPushEvent(payload);
 		log.info("✅ Push event closed!");
-
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
+	
+	
 }

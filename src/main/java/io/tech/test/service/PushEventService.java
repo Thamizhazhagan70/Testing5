@@ -151,11 +151,15 @@ public class PushEventService {
 
 				String timestampStr = (String) headCommit.get("timestamp");
 				try {
-					pushEvent.setHeadCommitTimestamp(
-							timestampStr != null ? LocalDateTime.parse(timestampStr) : LocalDateTime.now());
+				    if (timestampStr != null) {
+				        OffsetDateTime odt = OffsetDateTime.parse(timestampStr);
+				        pushEvent.setHeadCommitTimestamp(odt.toLocalDateTime());
+				    } else {
+				        pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
+				    }
 				} catch (Exception e) {
-					log.warn("Failed to parse head commit timestamp: {}", timestampStr);
-					pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
+				    log.warn("Failed to parse head commit timestamp: {}", timestampStr);
+				    pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
 				}
 
 			} else {
