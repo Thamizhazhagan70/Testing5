@@ -49,6 +49,15 @@ public class PushEventService {
 	                        existingPushEvent.getHeadCommitMessages().add(message);
 	                        log.info("📥 Appended new commit message: {}", message);
 	                    }
+	                    String ticketId = null;
+	    	            if (message != null) {
+	    	                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
+	    	                if (matcher.find()) {
+	    	                    ticketId = matcher.group(1);
+	    	                
+	    	                }
+	    	            }
+	    	            pushEvent.setTicketId(ticketId);
 	                    String timestampStr = (String) headCommit.get("timestamp");
 	                    try {
 	                        if (timestampStr != null) {
@@ -65,6 +74,7 @@ public class PushEventService {
 
 	                existingPushEvent.setCompareUrl((String) payload.get("compare"));
 	                log.info("Compare URL: {}", (String) payload.get("compare"));
+	                
 
 	                pushEventRepository.save(existingPushEvent);
 	                log.info("Updated commit count to {}, and appended message for branch '{}'",
@@ -148,12 +158,7 @@ public class PushEventService {
 	                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
 	                if (matcher.find()) {
 	                    ticketId = matcher.group(1);
-	                } else {
-	                    matcher = java.util.regex.Pattern.compile("([A-Z]+-\\d+)").matcher(message);
-	                    if (matcher.find()) {
-	                        ticketId = matcher.group(1);
-	                    }
-	                }
+	                } 
 	            }
 	            pushEvent.setTicketId(ticketId);
 
@@ -193,6 +198,11 @@ public class PushEventService {
 	    } catch (Exception e) {
 	        log.error("❌ Error processing push event: {}", e.getMessage(), e);
 	    }
+	}
+
+	public Optional<PushEvent> getPushEvent(String branch, String ticketId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 
