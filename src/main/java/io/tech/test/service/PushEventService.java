@@ -200,5 +200,10 @@ public class PushEventService {
 	    }
 	}
 
+	public Optional<PushEvent> getPushEvent(String branch, String ticketId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }
