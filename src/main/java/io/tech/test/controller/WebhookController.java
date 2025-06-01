@@ -20,6 +20,8 @@ public class WebhookController {
 	@PostMapping("/receive")
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
+	    log.info("Raw Payload: {}", payload);
+
 		System.out.println("Ref: " + payload.get("ref"));
 		pushEventService.processPushEvent(payload);
 		log.info("✅ Push event closed!");
