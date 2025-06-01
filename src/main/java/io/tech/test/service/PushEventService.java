@@ -49,11 +49,15 @@ public class PushEventService {
 						}
 						String timestampStr = (String) headCommit.get("timestamp");
 						try {
-							existingPushEvent.setHeadCommitTimestamp(
-									timestampStr != null ? LocalDateTime.parse(timestampStr) : LocalDateTime.now());
+						    if (timestampStr != null) {
+						        OffsetDateTime odt = OffsetDateTime.parse(timestampStr);
+						        pushEvent.setHeadCommitTimestamp(odt.toLocalDateTime());
+						    } else {
+						        pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
+						    }
 						} catch (Exception e) {
-							log.warn("Failed to parse head commit timestamp: {}", timestampStr);
-							existingPushEvent.setHeadCommitTimestamp(LocalDateTime.now());
+						    log.warn("Failed to parse head commit timestamp: {}", timestampStr);
+						    pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
 						}
 					}
 					existingPushEvent.setCompareUrl((String) payload.get("compare"));
@@ -123,7 +127,7 @@ public class PushEventService {
 				pushEvent.setForced(Boolean.valueOf(forcedObj.toString()));
 
 			pushEvent.setCompareUrl((String) payload.get("compare"));
-
+			log.info((String)payload.get("compare"));
 			// Extract head commit info
 			Object headCommitObj = payload.get("head_commit");
 			if (headCommitObj instanceof Map<?, ?> headCommit) {
