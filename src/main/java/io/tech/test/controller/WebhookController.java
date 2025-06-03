@@ -25,18 +25,30 @@ public class WebhookController {
 	    log.info("Raw Payload: {}", payload);
 
 		System.out.println("Ref: " + payload.get("ref"));
-		pushEventService.processPushEvent(payload);
-		log.info("✅ Push event closed!");
+		if (payload.containsKey("action") && payload.get("action").equals("review_requested")) {
+			log.info("<<<<<<<payload.containsKey(\"action\") && payload.get(\"action\").equals(\"review_requested\")>>>>>>>>");
+			
+		}
+		else if(!payload.containsKey("action") && !payload.get("action").equals("review_requested")) {
+			log.info("<<<<<<<!!!payload.containsKey(\\\"action\\\") && !!payload.get(\\\"action\\\").equals(\\\"review_requested\\\")>>>>>>>>");
+		}
+		else {
+			
+			log.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		}
+		
+		
+//		pushEventService.processPushEvent(payload);
 		log.info("✅ Push event closed!");
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 	
-    @GetMapping("/push-event")
-    public PushEvent getPushEventByBranchAndTicket(
-            @RequestParam String branch,
-            @RequestParam String ticketId) {
+	@GetMapping("/commits/details")
+	public PushEvent getCommitDetails(@RequestParam(required = false) String ticketId,
+	                                          @RequestParam(required = false) String projectId,
+	                                          @RequestParam(required = false) String fieldValueId){
 
-        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(branch, ticketId);
+        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(ticketId, projectId,fieldValueId);
         return pushEventOpt.orElse(null);  // returns null if not found
     }
 	
