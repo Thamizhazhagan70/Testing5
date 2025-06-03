@@ -27,7 +27,6 @@ public class WebhookController {
 		System.out.println("Ref: " + payload.get("ref"));
 		pushEventService.processPushEvent(payload);
 		log.info("✅ Push event closed!");
-		log.info("✅ Push event closed!");
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 	
