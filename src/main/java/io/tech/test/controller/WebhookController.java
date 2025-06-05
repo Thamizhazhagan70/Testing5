@@ -26,7 +26,7 @@ public class WebhookController {
 		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
 			
 			log.info("pull Request uhhhhhhhhhhhhhh.");
-		} else if (!payload.containsKey("head_commit") && !payload.containsKey("commits")) {
+		} else if (!payload.containsKey("ref_type") || !payload.containsKey("commits")) {
 			log.info("not save crate api");
 
 		} else {
