@@ -29,7 +29,8 @@ public class WebhookController {
 		} else if (!payload.containsKey("head_commit") && !payload.containsKey("commits")) {
 			log.info("not save crate api");
 
-		} else {
+		} else if (payload.containsKey("head_commit")) {
+			log.info("start commit save");
 			pushEventService.processPushEvent(payload);
 
 		}
