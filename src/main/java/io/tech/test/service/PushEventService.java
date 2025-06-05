@@ -26,7 +26,9 @@ public class PushEventService {
 
         try {
             // Extract branch info
-            String ref = (String) payload.get("ref");
+            // Extract branch info
+
+        	String ref = (String) payload.get("ref");
             String branchName = (ref != null) ? ref.replaceFirst("^refs/heads/", "") : null;
             gitCommitEvent.setBranch(branchName);
             gitCommitEvent.setCommitId((String) payload.get("after"));
