@@ -26,13 +26,16 @@ public class WebhookController {
 		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
 			
 			log.info("pull Request uhhhhhhhhhhhhhh.");
-		 }else {
-				pushEventService.processPushEvent(payload);
+		} else if (!payload.containsKey("head_commit") && !payload.containsKey("commits")) {
+			log.info("not save crate api");
 
-		 }
+		} else {
+			pushEventService.processPushEvent(payload);
+
+		}
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
-	
+
 //    @GetMapping("/push-event")
 //    public PushEvent getPushEventByBranchAndTicket(
 //            @RequestParam String branch,
