@@ -1,209 +1,105 @@
 package io.tech.test.service;
 
-import io.tech.test.entity.PushEvent;
+import io.tech.test.entity.GitCommitEvent;
 import io.tech.test.repo.PushEventRepository;
 import lombok.extern.slf4j.Slf4j;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 public class PushEventService {
 
-	@Autowired
-	private PushEventRepository pushEventRepository;
+    @Autowired
+    private PushEventRepository pushEventRepository;
 
-	public void processPushEvent(Map<String, Object> payload) {
-	    PushEvent pushEvent = new PushEvent();
-	    try {
-	        // Extract branch info
-	        String ref = (String) payload.get("ref");
-	        String branchName = (ref != null) ? ref.replaceFirst("^refs/heads/", "") : null;
-	        pushEvent.setBranch(branchName);
-	        pushEvent.setBeforeCommit((String) payload.get("before"));
-	        pushEvent.setAfterCommit((String) payload.get("after"));
-	        log.info("Received push event on branch: {}", branchName);
+    public void processPushEvent(Map<String, Object> payload) {
+        GitCommitEvent gitCommitEvent = new GitCommitEvent();
 
-	        if (branchName != null) {
-	            Optional<PushEvent> existingPushEventOpt = pushEventRepository.findByBranch(branchName);
+        try {
+            // Extract branch info
+            String ref = (String) payload.get("ref");
+            String branchName = (ref != null) ? ref.replaceFirst("^refs/heads/", "") : null;
+            gitCommitEvent.setBranch(branchName);
+            gitCommitEvent.setCommitId((String) payload.get("after"));
+            log.info("📌 Received push event on branch: {}", branchName);
+            Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
+            if (repository != null) {
+                gitCommitEvent.setRepoName((String) repository.get("name"));
+                gitCommitEvent.setRepoFullName((String) repository.get("full_name"));
+                gitCommitEvent.setRepoUrl((String) repository.get("url"));
+            }
+            Map<String, Object> pusher = (Map<String, Object>) payload.get("pusher");
+            if (pusher != null) {
+                gitCommitEvent.setPusherName((String) pusher.get("name"));
+                gitCommitEvent.setPusherEmail((String) pusher.get("email"));
+                log.info("🧑‍💻 Pusher: {} <{}>", pusher.get("name"), pusher.get("email"));
+            }
+            Map<String, Object> headCommit = (Map<String, Object>) payload.get("head_commit");
+            if (headCommit != null) {
+            	String message = (String) headCommit.get("message");
+            	gitCommitEvent.setMessage(message);
+                // Extract ticket ID from commit message
+                String ticketId = null;
+                if (message != null) {
+                    Matcher matcher = Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
+                    if (matcher.find()) {
+                        ticketId = matcher.group(1);
+                    }
+                }
+                gitCommitEvent.setTicketId(ticketId);
+                Map<String, Object> committer = (Map<String, Object>) headCommit.get("committer");
+                if (committer != null) {
+                    String authorName = (String) committer.get("name");
+                    String authorEmail = (String) committer.get("email");
+                    String username = (String) committer.get("username");
 
-	            if (existingPushEventOpt.isPresent() && existingPushEventOpt.get().getId() != null) {
-	                PushEvent existingPushEvent = existingPushEventOpt.get();
+                    gitCommitEvent.setAuthorName(authorName);
+                    gitCommitEvent.setAuthorEmail(authorEmail);
+                    gitCommitEvent.setUsername(username);
+                    boolean committedByBot = (authorName != null && authorName.contains("[bot]"))
+                            || (username != null && username.contains("[bot]"))
+                            || (authorEmail != null && authorEmail.contains("noreply.github.com"));
 
-	                existingPushEvent.setCommitCount(existingPushEvent.getCommitCount() + 1);
+                    gitCommitEvent.setCommittedByBot(committedByBot);
+                    log.info("🤖 Commit by bot? {}", committedByBot);
+                }
+                String timestampStr = (String) headCommit.get("timestamp");
+                if (timestampStr != null) {
+                    try {
+                        OffsetDateTime odt = OffsetDateTime.parse(timestampStr);
+                        gitCommitEvent.setUpdatedDate(odt.toLocalDateTime());
+                    } catch (Exception e) {
+                        log.warn("Failed to parse commit timestamp: {}", timestampStr);
+                        gitCommitEvent.setUpdatedDate(LocalDateTime.now());
+                    }
+                } else {
+                    gitCommitEvent.setUpdatedDate(LocalDateTime.now());
+                }
+                String commitUrl = (String) headCommit.get("url");
+                if (commitUrl != null) {
+                    gitCommitEvent.setUrl(commitUrl);
+                }
+            }
+            gitCommitEvent.setCommitCount(1);
+            pushEventRepository.save(gitCommitEvent);
+            log.info("✅ Push event saved for branch '{}' with ticket '{}'", branchName, gitCommitEvent.getTicketId());
 
-	                Object headCommitObj = payload.get("head_commit");
-	                if (headCommitObj instanceof Map<?, ?> headCommit) {
-	                    String message = (String) headCommit.get("message");
-	                    if (message != null) {
-	                        if (existingPushEvent.getHeadCommitMessages() == null) {
-	                            existingPushEvent.setHeadCommitMessages(new ArrayList<>());
-	                        }
-	                        existingPushEvent.getHeadCommitMessages().add(message);
-	                        log.info("📥 Appended new commit message: {}", message);
-	                    }
-	                    String ticketId = null;
-	    	            if (message != null) {
-	    	                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
-	    	                if (matcher.find()) {
-	    	                    ticketId = matcher.group(1);
-	    	                
-	    	                }
-	    	            }
-	    	            pushEvent.setTicketId(ticketId);
-	                    String timestampStr = (String) headCommit.get("timestamp");
-	                    try {
-	                        if (timestampStr != null) {
-	                            OffsetDateTime odt = OffsetDateTime.parse(timestampStr);
-	                            existingPushEvent.setHeadCommitTimestamp(odt.toLocalDateTime());
-	                        } else {
-	                            existingPushEvent.setHeadCommitTimestamp(LocalDateTime.now());
-	                        }
-	                    } catch (Exception e) {
-	                        log.warn("Failed to parse head commit timestamp: {}", timestampStr);
-	                        existingPushEvent.setHeadCommitTimestamp(LocalDateTime.now());
-	                    }
-	                }
+        } catch (Exception e) {
+            log.error("❌ Error processing push event: {}", e.getMessage(), e);
+        }
+    }
 
-	                existingPushEvent.setCompareUrl((String) payload.get("compare"));
-	                log.info("Compare URL: {}", (String) payload.get("compare"));
-	                
-
-	                pushEventRepository.save(existingPushEvent);
-	                log.info("Updated commit count to {}, and appended message for branch '{}'",
-	                        existingPushEvent.getCommitCount(), branchName);
-	                return;
-	            }
-	        }
-
-	        // Extract repository info
-	        Object repoObj = payload.get("repository");
-	        if (repoObj instanceof Map<?, ?> repository) {
-	            Object repoIdObj = repository.get("id");
-	            if (repoIdObj != null) {
-	                try {
-	                    pushEvent.setRepositoryId(Long.valueOf(repoIdObj.toString()));
-	                } catch (NumberFormatException e) {
-	                    log.warn("Invalid repository ID format: {}", repoIdObj);
-	                }
-	            }
-	            pushEvent.setRepositoryName((String) repository.get("name"));
-	            Object privateObj = repository.get("private");
-	            if (privateObj != null) {
-	                pushEvent.setRepositoryPrivate(Boolean.valueOf(privateObj.toString()));
-	            }
-	            pushEvent.setRepoUrl((String) repository.get("url"));
-	            Object ownerObj = repository.get("owner");
-	            if (ownerObj instanceof Map<?, ?> owner) {
-	                pushEvent.setRepoOwnerLogin((String) owner.get("login"));
-	                pushEvent.setRepoOwnerEmail((String) owner.get("email"));
-	            }
-	        }
-
-	        // Extract pusher info
-	        Object pusherObj = payload.get("pusher");
-	        if (pusherObj instanceof Map<?, ?> pusher) {
-	            pushEvent.setPusherName((String) pusher.get("name"));
-	            pushEvent.setPusherEmail((String) pusher.get("email"));
-	            log.info("🧑‍💻 Pusher: {} <{}>", pusher.get("name"), pusher.get("email"));
-	        }
-
-	        // Extract sender info
-	        Object senderObj = payload.get("sender");
-	        if (senderObj instanceof Map<?, ?> sender) {
-	            pushEvent.setSenderLogin((String) sender.get("login"));
-
-	            Object senderIdObj = sender.get("id");
-	            if (senderIdObj != null) {
-	                try {
-	                    pushEvent.setSenderId(Long.valueOf(senderIdObj.toString()));
-	                } catch (NumberFormatException e) {
-	                    log.warn("⚠️ Invalid sender ID format: {}", senderIdObj);
-	                }
-	            }
-	        }
-
-	        // Flags: created, deleted, forced
-	        Object createdObj = payload.get("created");
-	        if (createdObj != null)
-	            pushEvent.setCreated(Boolean.valueOf(createdObj.toString()));
-
-	        Object deletedObj = payload.get("deleted");
-	        if (deletedObj != null)
-	            pushEvent.setDeleted(Boolean.valueOf(deletedObj.toString()));
-
-	        Object forcedObj = payload.get("forced");
-	        if (forcedObj != null)
-	            pushEvent.setForced(Boolean.valueOf(forcedObj.toString()));
-
-	        pushEvent.setCompareUrl((String) payload.get("compare"));
-	        log.info("Compare URL: {}", (String) payload.get("compare"));
-
-	        // Extract head commit info
-	        Object headCommitObj = payload.get("head_commit");
-	        if (headCommitObj instanceof Map<?, ?> headCommit) {
-	            String message = (String) headCommit.get("message");
-	            pushEvent.setHeadCommitMessages(message != null ? Collections.singletonList(message) : Collections.emptyList());
-
-	            // Extract ticket ID from message - first try TT# prefix, else just ticket pattern
-	            String ticketId = null;
-	            if (message != null) {
-	                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
-	                if (matcher.find()) {
-	                    ticketId = matcher.group(1);
-	                } 
-	            }
-	            pushEvent.setTicketId(ticketId);
-
-	            log.info("🎫 Commit message: {}", message);
-	            log.info("🎯 Extracted ticket ID: {}", ticketId);
-
-	            Object committerObj = headCommit.get("committer");
-	            if (committerObj instanceof Map<?, ?> committer) {
-	                pushEvent.setCommitterName((String) committer.get("name"));
-	                pushEvent.setCommitterEmail((String) committer.get("email"));
-	                pushEvent.setCommitterUsername((String) committer.get("username"));
-	            }
-
-	            String timestampStr = (String) headCommit.get("timestamp");
-	            try {
-	                if (timestampStr != null) {
-	                    OffsetDateTime odt = OffsetDateTime.parse(timestampStr);
-	                    pushEvent.setHeadCommitTimestamp(odt.toLocalDateTime());
-	                } else {
-	                    pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
-	                }
-	            } catch (Exception e) {
-	                log.warn("Failed to parse head commit timestamp: {}", timestampStr);
-	                pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
-	            }
-	        } else {
-	            pushEvent.setHeadCommitTimestamp(LocalDateTime.now());
-	        }
-
-	        // Set initial commit count for new push event
-	        pushEvent.setCommitCount(1);
-
-	        // Save new push event
-	        pushEventRepository.save(pushEvent);
-	        log.info("✅ Push event saved for branch '{}' with ticket '{}'", branchName, pushEvent.getTicketId());
-
-	    } catch (Exception e) {
-	        log.error("❌ Error processing push event: {}", e.getMessage(), e);
-	    }
-	}
-
-	public Optional<PushEvent> getPushEvent(String branch, String ticketId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+    public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
+        // To be implemented
+        return Optional.empty();
+    }
 }
