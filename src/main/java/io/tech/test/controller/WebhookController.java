@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.tech.test.entity.PushEvent;
+import io.tech.test.entity.GitCommitEvent;
 import io.tech.test.service.PushEventService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,33 +23,23 @@ public class WebhookController {
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
 	    log.info("Raw Payload: {}", payload);
+		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
+			
+			log.info("pull Request uhhhhhhhhhhhhhh.");
+		 }else {
+				pushEventService.processPushEvent(payload);
 
-		System.out.println("Ref: " + payload.get("ref"));
-		if (payload.containsKey("action") && payload.get("action").equals("review_requested")) {
-			log.info("<<<<<<<payload.containsKey(\"action\") && payload.get(\"action\").equals(\"review_requested\")>>>>>>>>");
-			
-		}
-		else if(!payload.containsKey("action") && !payload.get("action").equals("review_requested")) {
-			log.info("<<<<<<<!!!payload.containsKey(\\\"action\\\") && !!payload.get(\\\"action\\\").equals(\\\"review_requested\\\")>>>>>>>>");
-		}
-		else {
-			
-			log.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-		}
-		
-		
-//		pushEventService.processPushEvent(payload);
-		log.info("✅ Push event closed!");
+		 }
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 	
-	@GetMapping("/commits/details")
-	public PushEvent getCommitDetails(@RequestParam(required = false) String ticketId,
-	                                          @RequestParam(required = false) String projectId,
-	                                          @RequestParam(required = false) String fieldValueId){
-
-        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(ticketId, projectId,fieldValueId);
-        return pushEventOpt.orElse(null);  // returns null if not found
-    }
+//    @GetMapping("/push-event")
+//    public PushEvent getPushEventByBranchAndTicket(
+//            @RequestParam String branch,
+//            @RequestParam String ticketId) {
+//
+//        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(branch, ticketId);
+//        return pushEventOpt.orElse(null);  // returns null if not found
+//    }
 	
 }
