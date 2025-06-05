@@ -46,6 +46,7 @@ public class PushEventService {
             Map<String, Object> headCommit = (Map<String, Object>) payload.get("head_commit");
             if (headCommit != null) {
             	String message = (String) headCommit.get("message");
+            	log.info(message);
             	gitCommitEvent.setMessage(message);
                 // Extract ticket ID from commit message
                 String ticketId = null;
