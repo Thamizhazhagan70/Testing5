@@ -4,12 +4,14 @@ import io.tech.test.entity.GitCommitEvent;
 import io.tech.test.entity.PullRequestDetail;
 import io.tech.test.repo.PullRequestDetailRepository;
 import io.tech.test.repo.PushEventRepository;
+import io.tech.test.repo.PullRequestDetailRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +24,9 @@ public class PushEventService {
 
     @Autowired
     private PushEventRepository pushEventRepository;
+   
+    @Autowired
+    private PullRequestDetailRepository pullRequestDetailRepository;
 
     public void processPushEvent(Map<String, Object> payload) {
         GitCommitEvent gitCommitEvent = new GitCommitEvent();
@@ -101,8 +106,64 @@ public class PushEventService {
         }
     }
 
-    public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
-        // To be implemented
-        return Optional.empty();
-    }
+	public void processPullRequestEvent(Map<String, Object> payload) {
+		Map<String, Object> pullRequest = (Map<String, Object>) payload.get("pull_request");
+		if (pullRequest == null) {
+			return;
+		}
+
+		PullRequestDetail prDetail = new PullRequestDetail();
+		prDetail.setPullRequestId(pullRequest.get("id") != null ? pullRequest.get("id").toString() : null);
+		String message = (String) pullRequest.get("title");
+		String cleanMessage = message.replaceFirst("^TT#[^:]+:\\s*", "");
+		prDetail.setMessage(cleanMessage);
+		prDetail.setPullRequestUrl((String) pullRequest.get("html_url"));
+		prDetail.setStatus((String) pullRequest.get("state"));
+		prDetail.setCreatedDate((String) pullRequest.get("created_at"));
+		prDetail.setMergedDate((String) pullRequest.get("merged_at"));
+		prDetail.setIsMerged((Boolean) pullRequest.get("merged"));
+		// Source branch
+		Map<String, Object> head = (Map<String, Object>) pullRequest.get("head");
+		if (head != null) {
+			prDetail.setSourceBranch((String) head.get("ref"));
+			// Repository info
+			Map<String, Object> headRepo = (Map<String, Object>) head.get("repo");
+			if (headRepo != null) {
+				prDetail.setRepoName((String) headRepo.get("name"));
+				prDetail.setRepoFullName((String) headRepo.get("full_name"));
+			}
+		}
+		// Target branch
+		Map<String, Object> base = (Map<String, Object>) pullRequest.get("base");
+		if (base != null) {
+			prDetail.setTargetBranch((String) base.get("ref"));
+		}
+		// Created by user
+		Map<String, Object> user = (Map<String, Object>) pullRequest.get("user");
+		if (user != null) {
+			prDetail.setCreatedBy((String) user.get("login"));
+		}
+		// Commit IDs
+		List<String> commitIds = new ArrayList<>();
+		Object commitsObj = pullRequest.get("commits");
+		if (commitsObj instanceof List<?>) {
+			for (Object commitObj : (List<?>) commitsObj) {
+				if (commitObj instanceof Map<?, ?>) {
+					Map<String, Object> commitMap = (Map<String, Object>) commitObj;
+					Object shaObj = commitMap.get("sha");
+					if (shaObj != null) {
+						commitIds.add(shaObj.toString());
+					}
+				}
+			}
+		}
+		prDetail.setCommitIds(commitIds);
+		// Save to DB
+		pullRequestDetailRepository.save(prDetail);
+	}
+
+	public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
+		// To be implemented
+		return Optional.empty();
+	}
 }
