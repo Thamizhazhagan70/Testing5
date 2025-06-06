@@ -23,24 +23,21 @@ public class WebhookController {
 	@PostMapping("/receive")
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
-	    log.info("Raw Payload: {}", payload);
-	    if (payload.containsKey("pull_request") && payload.containsKey("action")) {
-	        log.info("Pull request event detected.");
-	        pushEventService.processPullRequestEvent(payload);
-	        return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
-	    } 
-	    else if (payload.containsKey("created") && (Boolean) payload.get("created")) {
-	        log.info("Branch creation event detected. Not processing this payload.");
-	        return new ResponseEntity<>("Branch creation event ignored.", HttpStatus.OK);
-	    } 
-	    else if (!payload.containsKey("commits") || ((List<?>) payload.get("commits")).isEmpty()) {
-	        log.info("Push event with no commits detected. Not processing this payload.");
-	        return new ResponseEntity<>("Push event with no commits ignored.", HttpStatus.OK);
-	    } 
-	    else {
-	        log.info("Processing push event.");
-	        pushEventService.processPushEvent(payload);
-	    }
+		log.info("Raw Payload: {}", payload);
+		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
+			log.info("Pull request event detected.");
+			pushEventService.processPullRequestEvent(payload);
+			return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
+		} else if (payload.containsKey("created") && (Boolean) payload.get("created")) {
+			log.info("Branch creation event detected. Not processing this payload.");
+			return new ResponseEntity<>("Branch creation event ignored.", HttpStatus.OK);
+		} else if (!payload.containsKey("commits") || ((List<?>) payload.get("commits")).isEmpty()) {
+			log.info("Push event with no commits detected. Not processing this payload.");
+			return new ResponseEntity<>("Push event with no commits ignored.", HttpStatus.OK);
+		} else {
+			log.info("Processing push event.");
+			pushEventService.processPushEvent(payload);
+		}
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 
@@ -52,5 +49,5 @@ public class WebhookController {
 //        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(branch, ticketId);
 //        return pushEventOpt.orElse(null);  // returns null if not found
 //    }
-	
+
 }
