@@ -9,7 +9,6 @@ import io.tech.test.entity.GitCommitEvent;
 import io.tech.test.service.PushEventService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,25 +23,16 @@ public class WebhookController {
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 		log.info("✅ Push event received!");
 	    log.info("Raw Payload: {}", payload);
-	    if (payload.containsKey("pull_request") && payload.containsKey("action")) {
-	        log.info("Pull request event detected.");
-	        return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
-	    } 
-	    // Check if the payload indicates a branch creation event
-	    else if (payload.containsKey("created") && (Boolean) payload.get("created")) {
-	        log.info("Branch creation event detected. Not processing this payload.");
-	        return new ResponseEntity<>("Branch creation event ignored.", HttpStatus.OK);
-	    } 
-	    // Check if the payload is a push event with no commits
-	    else if (!payload.containsKey("commits") || ((List<?>) payload.get("commits")).isEmpty()) {
-	        log.info("Push event with no commits detected. Not processing this payload.");
-	        return new ResponseEntity<>("Push event with no commits ignored.", HttpStatus.OK);
-	    } 
-	    // Handle valid push events
-	    else {
-	        log.info("Processing push event.");
-	        pushEventService.processPushEvent(payload);
-	    }
+		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
+			
+			log.info("pull Request uhhhhhhhhhhhhhh.");
+		} else if (!payload.containsKey("head_commit") && !payload.containsKey("commits")) {
+			log.info("not save crate api");
+
+		} else {
+			pushEventService.processPushEvent(payload);
+
+		}
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 
