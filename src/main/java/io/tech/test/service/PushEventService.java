@@ -164,7 +164,11 @@ public class PushEventService {
 	}
 
 
-	public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
-		return Optional.empty();
+	public List<GitCommitEvent> getPushEvent(String branch, String ticketId, String fieldValueId) {
+	    return pushEventRepository.findByBranchAndTicketId(branch, ticketId);
 	}
+	
+	 public List<PullRequestDetail> getPullRequest(String sourceBranch, String ticketId) {
+	        return pullRequestDetailRepository.findBySourceBranchAndTicketId(sourceBranch, ticketId);
+	    }
 }
