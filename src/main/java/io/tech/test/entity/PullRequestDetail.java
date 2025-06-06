@@ -15,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @Document(collection = "pull_request_details")
 public class PullRequestDetail {
-
     @Id
     private String id;
 
@@ -24,15 +23,18 @@ public class PullRequestDetail {
     private String Message;
     private String pullRequestUrl;
     private String status; // open, closed, merged
+    private String ticketId;
     private String sourceBranch;
     private String targetBranch;
+    private String projectId;
+    private String FieldvalueId;
     private String createdBy;
+    private String requestedReviewer;
     private String merged_By;
     private String createdDate;
     private String mergedDate;
     private String repoName;
     private String repoFullName;
-    private List<String> commitIds;
     private Boolean isMerged;
     
 }

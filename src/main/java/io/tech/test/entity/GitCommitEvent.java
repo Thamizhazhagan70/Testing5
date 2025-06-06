@@ -17,23 +17,22 @@ import java.util.List;
 public class GitCommitEvent {
 
     @Id
-    private String id; //
-    private String commitId;//
-    private String ticketId;//
-    private String repoUrl;//
-    private String branch;//
+    private String id;
+    private String commitId;
+    private String ticketId;
+    private String repoUrl;
+    private String branch;
     private String pusherName;
     private String pusherEmail;
-    private Integer commitCount;
     private String fieldValueId;
     private String projectId;
     private String message;
-    private String url;
+    private String commitUrl;
     private String authorName;
     private String authorEmail;
     private String username;
     private LocalDateTime updatedDate;
-    private String repoName;//
-    private String repoFullName;//
+    private String repoName;
+    private String repoFullName;
     private boolean committedByBot;
 }

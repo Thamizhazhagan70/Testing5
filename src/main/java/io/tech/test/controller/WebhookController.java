@@ -29,17 +29,14 @@ public class WebhookController {
 	        pushEventService.processPullRequestEvent(payload);
 	        return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
 	    } 
-	    // Check if the payload indicates a branch creation event
 	    else if (payload.containsKey("created") && (Boolean) payload.get("created")) {
 	        log.info("Branch creation event detected. Not processing this payload.");
 	        return new ResponseEntity<>("Branch creation event ignored.", HttpStatus.OK);
 	    } 
-	    // Check if the payload is a push event with no commits
 	    else if (!payload.containsKey("commits") || ((List<?>) payload.get("commits")).isEmpty()) {
 	        log.info("Push event with no commits detected. Not processing this payload.");
 	        return new ResponseEntity<>("Push event with no commits ignored.", HttpStatus.OK);
 	    } 
-	    // Handle valid push events
 	    else {
 	        log.info("Processing push event.");
 	        pushEventService.processPushEvent(payload);
