@@ -107,73 +107,62 @@ public class PushEventService {
 	}
 
 	public void processPullRequestEvent(Map<String, Object> payload) {
-		Map<String, Object> pullRequest = (Map<String, Object>) payload.get("pull_request");
-		if (pullRequest == null)
-			return;
+	    Map<String, Object> pullRequest = (Map<String, Object>) payload.get("pull_request");
+	    if (pullRequest == null) return;
 
-		String prId = pullRequest.get("id") != null ? pullRequest.get("id").toString() : null;
-		if (prId == null)
-			return;
+	    String prId = pullRequest.get("id") != null ? pullRequest.get("id").toString() : null;
+	    if (prId == null) return;
 
-		PullRequestDetail prDetail = pullRequestDetailRepository.findByPullRequestId(prId)
-				.orElse(new PullRequestDetail());
+	    PullRequestDetail prDetail = new PullRequestDetail();
+	    prDetail.setPullRequestId(prId);
+	    String message = (String) pullRequest.get("title");
+	    if (message != null) {
+	        Matcher ticketMatcher = Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
+	        if (ticketMatcher.find()) {
+	            prDetail.setTicketId(ticketMatcher.group(1));
+	        }
+	        String cleanMessage = message.replaceFirst("^TT#[^:]+:\\s*", "");
+	        prDetail.setMessage(cleanMessage);
+	    }
+	    prDetail.setPullRequestUrl((String) pullRequest.get("html_url"));
+	    prDetail.setStatus((String) pullRequest.get("state"));
+	    prDetail.setCreatedDate((String) pullRequest.get("created_at"));
+	    prDetail.setMergedDate((String) pullRequest.get("merged_at"));
+	    prDetail.setIsMerged((Boolean) pullRequest.get("merged"));
+	    Map<String, Object> head = (Map<String, Object>) pullRequest.get("head");
+	    if (head != null) {
+	        String sourceBranch = (String) head.get("ref");
+	        prDetail.setSourceBranch(sourceBranch);
+	        log.info("Source Branch: {}", sourceBranch);
+	    Map<String, Object> headRepo = (Map<String, Object>) head.get("repo");
+	        if (headRepo != null) {
+	            prDetail.setRepoName((String) headRepo.get("name"));
+	            prDetail.setRepoFullName((String) headRepo.get("full_name"));
+	        }
+	    }
+	    if (pullRequest.containsKey("requested_reviewers")) {
+	        List<Map<String, Object>> requestedReviewers = (List<Map<String, Object>>) pullRequest.get("requested_reviewers");
+	        if (requestedReviewers != null && !requestedReviewers.isEmpty()) {
+	            prDetail.setRequestedReviewer((String) requestedReviewers.get(0).get("login"));
+	        }
+	    }
+	    Map<String, Object> mergedBy = (Map<String, Object>) pullRequest.get("merged_by");
+	    if (mergedBy != null) {
+	        prDetail.setMerged_By((String) mergedBy.get("login"));
+	    }
+	    Map<String, Object> base = (Map<String, Object>) pullRequest.get("base");
+	    if (base != null) {
+	        prDetail.setTargetBranch((String) base.get("ref"));
+	    }
+	    Map<String, Object> user = (Map<String, Object>) pullRequest.get("user");
+	    if (user != null) {
+	        prDetail.setCreatedBy((String) user.get("login"));
+	    }
 
-		prDetail.setPullRequestId(prId);
-		String message = (String) pullRequest.get("title");
-		String ticketId = null;
-		if (message != null) {
-			Matcher Ticket = Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
-			if (Ticket.find()) {
-				ticketId = Ticket.group(1);
-			}
-			prDetail.setTicketId(ticketId);
-			String cleanMessage = message.replaceFirst("^TT#[^:]+:\\s*", "");
-			prDetail.setMessage(cleanMessage);
-			Matcher matcher = Pattern.compile("TT#([A-Z]+-\\d+)").matcher(message);
-			if (matcher.find()) {
-				ticketId = matcher.group(1);
-			}
-		}
-		prDetail.setPullRequestUrl((String) pullRequest.get("html_url"));
-		prDetail.setStatus((String) pullRequest.get("state"));
-		if (prDetail.getCreatedDate() == null) {
-			prDetail.setCreatedDate((String) pullRequest.get("created_at"));
-		}
-		prDetail.setMergedDate((String) pullRequest.get("merged_at"));
-		prDetail.setIsMerged((Boolean) pullRequest.get("merged"));
-
-		Map<String, Object> head = (Map<String, Object>) pullRequest.get("head");
-		String sourceBranch = null;
-		if (head != null) {
-			sourceBranch = (String) head.get("ref");
-			prDetail.setSourceBranch(sourceBranch);
-			Map<String, Object> headRepo = (Map<String, Object>) head.get("repo");
-			if (headRepo != null) {
-				prDetail.setRepoName((String) headRepo.get("name"));
-				prDetail.setRepoFullName((String) headRepo.get("full_name"));
-			}
-		}
-		if (pullRequest.containsKey("requested_reviewer") && pullRequest.get("requested_reviewers") != null) {
-			Map<String, Object> requestedReviewer = (Map<String, Object>) pullRequest.get("requested_reviewer");
-			prDetail.setRequestedReviewer((String) requestedReviewer.get("login"));
-		}
-		log.info(sourceBranch);
-		Map<String, Object> mergedBy = (Map<String, Object>) pullRequest.get("merged_by");
-		if (mergedBy != null) {
-			prDetail.setMerged_By((String) mergedBy.get("login"));
-		}
-
-		Map<String, Object> base = (Map<String, Object>) pullRequest.get("base");
-		if (base != null) {
-			prDetail.setTargetBranch((String) base.get("ref"));
-		}
-		Map<String, Object> user = (Map<String, Object>) pullRequest.get("user");
-		if (user != null) {
-			prDetail.setCreatedBy((String) user.get("login"));
-		}
-		pullRequestDetailRepository.save(prDetail);
-		log.info("Pull event saved sucessfully");
+	    pullRequestDetailRepository.save(prDetail);
+	    log.info("Pull event saved successfully for PR ID: {}", prId);
 	}
+
 
 	public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
 		return Optional.empty();
