@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.tech.test.entity.GitCommitEvent;
+import io.tech.test.entity.PullRequestDetail;
 import io.tech.test.service.PushEventService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,13 +42,21 @@ public class WebhookController {
 		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
 	}
 
-//    @GetMapping("/push-event")
-//    public PushEvent getPushEventByBranchAndTicket(
-//            @RequestParam String branch,
-//            @RequestParam String ticketId) {
-//
-//        Optional<PushEvent> pushEventOpt = pushEventService.getPushEvent(branch, ticketId);
-//        return pushEventOpt.orElse(null);  // returns null if not found
-//    }
+	@GetMapping("/commits/detail")
+    public List<GitCommitEvent> getPushEventByBranchAndTicket(@RequestParam(required = false) String branch,
+            @RequestParam(required = false) String projectId,
+            @RequestParam(required = false) String fieldValueId) {
 
+        List<GitCommitEvent> pushEventOpt = pushEventService.getPushEvent(branch,projectId, fieldValueId);
+        return pushEventOpt;
+    }
+	@GetMapping("/pull-requests")
+	public  List<PullRequestDetail>  getPullRequestByBranchAndTicket(
+	        @RequestParam String sourceBranch,
+	        @RequestParam String ticketId) {
+
+	    List<PullRequestDetail> prDetailOpt = pushEventService.getPullRequest(sourceBranch, ticketId);
+
+	    return prDetailOpt;
+	}
 }
