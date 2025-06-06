@@ -2,6 +2,7 @@ package io.tech.test.service;
 
 import io.tech.test.entity.GitCommitEvent;
 import io.tech.test.entity.PullRequestDetail;
+import io.tech.test.repo.PullRequestDetailRepository;
 import io.tech.test.repo.PushEventRepository;
 import io.tech.test.repo.PullRequestDetailRepository;
 import lombok.extern.slf4j.Slf4j;
