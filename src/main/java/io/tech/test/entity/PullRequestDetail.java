@@ -32,7 +32,6 @@ public class PullRequestDetail {
     private String mergedDate;
     private String repoName;
     private String repoFullName;
-    private List<String> commitIds;
     private Boolean isMerged;
     
 }
