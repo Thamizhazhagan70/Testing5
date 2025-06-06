@@ -21,15 +21,18 @@ public class PullRequestDetail {
 
     @Indexed(unique = true)
     private String pullRequestId;
-    private String title;
-    private String url;
-    private String state; // open, closed, merged
+    private String Message;
+    private String pullRequestUrl;
+    private String status; // open, closed, merged
     private String sourceBranch;
     private String targetBranch;
     private String createdBy;
-    private String createdAt;
-    private String mergedAt;
+    private String merged_By;
+    private String createdDate;
+    private String mergedDate;
     private String repoName;
     private String repoFullName;
     private List<String> commitIds;
+    private Boolean isMerged;
+    
 }

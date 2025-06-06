@@ -26,6 +26,7 @@ public class WebhookController {
 	    log.info("Raw Payload: {}", payload);
 	    if (payload.containsKey("pull_request") && payload.containsKey("action")) {
 	        log.info("Pull request event detected.");
+	        pushEventService.processPullRequestEvent(payload);
 	        return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
 	    } 
 	    // Check if the payload indicates a branch creation event
