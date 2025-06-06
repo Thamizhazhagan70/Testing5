@@ -157,7 +157,7 @@ public class PushEventService {
 		    Map<String, Object> requestedReviewer = (Map<String, Object>) pullRequest.get("requested_reviewer");
 		    prDetail.setRequestedReviewer((String) requestedReviewer.get("login"));
 		}
-
+log.info(sourceBranch);
 		Map<String, Object> mergedBy = (Map<String, Object>) pullRequest.get("merged_by");
 		if (mergedBy != null) {
 			prDetail.setMerged_By((String) mergedBy.get("login"));
