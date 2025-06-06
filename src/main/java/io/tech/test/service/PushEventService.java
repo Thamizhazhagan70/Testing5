@@ -172,6 +172,7 @@ log.info(sourceBranch);
 			prDetail.setCreatedBy((String) user.get("login"));
 		}
 		pullRequestDetailRepository.save(prDetail);
+		log.info("Pull event saved sucessfully");
 	}
 
 	public Optional<GitCommitEvent> getPushEvent(String branch, String ticketId) {
