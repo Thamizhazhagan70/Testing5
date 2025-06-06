@@ -153,13 +153,14 @@ public class PushEventService {
 				prDetail.setRepoFullName((String) headRepo.get("full_name"));
 			}
 		}
-		Map<String, Object> requestedReviewer = (Map<String, Object>) pullRequest.get("requested_reviewer");
-		if (requestedReviewer != null) {
-			prDetail.setRequestedReviewer((String) requestedReviewer.get("login"));
+		if (pullRequest.containsKey("requested_reviewer") && pullRequest.get("requested_reviewer") != null) {
+		    Map<String, Object> requestedReviewer = (Map<String, Object>) pullRequest.get("requested_reviewer");
+		    prDetail.setRequestedReviewer((String) requestedReviewer.get("login"));
 		}
+
 		Map<String, Object> mergedBy = (Map<String, Object>) pullRequest.get("merged_by");
 		if (mergedBy != null) {
-			prDetail.setMerged_By((String) requestedReviewer.get("login"));
+			prDetail.setMerged_By((String) mergedBy.get("login"));
 		}
 
 		Map<String, Object> base = (Map<String, Object>) pullRequest.get("base");
