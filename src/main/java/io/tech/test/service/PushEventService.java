@@ -159,7 +159,7 @@ public class PushEventService {
 	    return pushEventRepository.findByBranchAndTicketId(branch, ticketId);
 	}
 	
-	 public List<PullRequestDetail> getPullRequest(String sourceBranch, String ticketId) {
-	        return pullRequestDetailRepository.findBySourceBranchAndTicketId(sourceBranch, ticketId);
+	public List<PullRequestDetail> getPullRequest(String sourceBranch, String ticketId) {
+	        return pullRequestDetailRepository.findBySourceBranch(sourceBranch);
 	    }
 }

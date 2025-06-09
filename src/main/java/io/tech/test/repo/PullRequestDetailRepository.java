@@ -14,5 +14,5 @@ public interface PullRequestDetailRepository extends MongoRepository<PullRequest
 	List<PullRequestDetail> findByPullRequestId(String prId);
     // Additional query methods can be defined here if needed
 
-	List<PullRequestDetail> findBySourceBranchAndTicketId(String sourceBranch, String ticketId);
+	List<PullRequestDetail> findBySourceBranch(String sourceBranch);
 }

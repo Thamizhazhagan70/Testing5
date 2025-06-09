@@ -23,23 +23,25 @@ public class WebhookController {
 
 	@PostMapping("/receive")
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
-		log.info("✅ Push event received!");
-		log.info("Raw Payload: {}", payload);
-		if (payload.containsKey("pull_request") && payload.containsKey("action")) {
-			log.info("Pull request event detected.");
-			pushEventService.processPullRequestEvent(payload);
-			return new ResponseEntity<>("Pull request event processed.", HttpStatus.OK);
-		} else if (payload.containsKey("created") && (Boolean) payload.get("created")) {
-			log.info("Branch creation event detected. Not processing this payload.");
-			return new ResponseEntity<>("Branch creation event ignored.", HttpStatus.OK);
-		} else if (!payload.containsKey("commits") || ((List<?>) payload.get("commits")).isEmpty()) {
-			log.info("Push event with no commits detected. Not processing this payload.");
-			return new ResponseEntity<>("Push event with no commits ignored.", HttpStatus.OK);
-		} else {
-			log.info("Processing push event.");
-			pushEventService.processPushEvent(payload);
-		}
-		return new ResponseEntity<>("Push event processed successfully!", HttpStatus.OK);
+	    log.info("Webhook event received.");
+
+	    if (payload.containsKey("pull_request") && payload.containsKey("action")) {
+	        log.info("Processing pull request event.");
+	        pushEventService.processPullRequestEvent(payload);
+	        return ResponseEntity.ok("Pull request event processed.");
+	    }
+	    if (Boolean.TRUE.equals(payload.get("created"))) {
+	        log.info("Branch creation event detected — ignored.");
+	        return ResponseEntity.ok("Branch creation event ignored.");
+	    }
+	    List<?> commits = (List<?>) payload.get("commits");
+	    if (commits == null || commits.isEmpty()) {
+	        log.info("Push event with no commits — ignored.");
+	        return ResponseEntity.ok("Push event with no commits ignored.");
+	    }
+	    log.info("Processing push event.");
+	    pushEventService.processPushEvent(payload);
+	    return ResponseEntity.ok("Push event processed successfully!");
 	}
 
 	@GetMapping("/commits/detail")
