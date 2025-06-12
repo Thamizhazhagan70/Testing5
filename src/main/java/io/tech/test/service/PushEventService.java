@@ -28,6 +28,7 @@ public class PushEventService {
 	private PullRequestDetailRepository pullRequestDetailRepository;
 
 	public void processPushEvent(Map<String, Object> payload) {
+		log.info(">>>>>>>>"+payload);
 	    GitCommitEvent gitCommitEvent = new GitCommitEvent();
 
 	    try {
@@ -101,6 +102,7 @@ public class PushEventService {
 	}
 
 	public void processPullRequestEvent(Map<String, Object> payload) {
+		log.info(">>>>>"+payload);
 		Map<String, Object> pullRequest = (Map<String, Object>) payload.get("pull_request");
 		if (pullRequest == null)
 			return;
