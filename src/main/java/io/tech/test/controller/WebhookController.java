@@ -24,6 +24,10 @@ public class WebhookController {
 	@PostMapping("/receive")
 	public ResponseEntity<String> receivePushEvent(@RequestBody Map<String, Object> payload) {
 	    log.info("Webhook event received.");
+	    log.info("Webhook event received.");
+	    log.info("Webhook event received.");
+	    log.info("Webhook event received.");
+	    log.info("Webhook event received.");
 
 	    if (payload.containsKey("pull_request") && payload.containsKey("action")) {
 	        log.info("Processing pull request event.");
