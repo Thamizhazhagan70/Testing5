@@ -19,14 +19,6 @@ public class Index {
     	//hello
 
 
-    	//tttttttttttr
-    	//hello
-    	//haiiiii	//tttttttttttr
-    	//hello
-    	//haiiiii
-    	//tttttttttttr
-    	//hello
-
         return "Hello from the print method!";
     }
 }
